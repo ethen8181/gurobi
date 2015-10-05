@@ -1,2 +1,3 @@
 # gurobi
-Solving Linear Programming problems with gurobi in R
+Solving linear programming problems with gurobi in R
+

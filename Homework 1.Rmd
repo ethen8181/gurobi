@@ -1,0 +1,172 @@
+---
+title: "Linear Programming Homework 1"
+author: "104034501 Ming-Yu Liu"
+date: "October 5, 2015"
+output: pdf_document
+---
+
+```{r}
+## loading the required library
+suppressMessages( library(gurobi) )
+
+```
+
+
+#### Question 1.6
+A cheese firm produces two types of cheese: swiss cheese and sharp cheese. The firm has 60 experienced workers and would like to increase its working force to 90 workers during the next eight weeks. Each experienced worker can train three new employees in a period of two weeks during which the workers involved virtually produce nothing. It takes one man-hour to produce 10 pounds of Swiss cheese and one man-hour to produce 6 pounds of sharp cheese. A work week is 40 hours. The weekly demands (in 1000 pounds) are summarized below:
+
+CHEESETYPE   | WEEK1 | WEEK2 | WEEK3 | WEEK4 | WEEK5 | WEEK6 | WEEK7 | WEEK8 | 
+------------ | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- |
+Swiss cheese | 11    | 12    | 13    | 18    | 14    | 18    | 20    | 20    |
+Sharp cheese | 8     | 8     | 10    | 8     | 12    | 13    | 12    | 12    |
+
+Suppose that a trainee receives the same full salary as an experienced worker. Further suppose that overaging destroys the flavor of the cheese, so that inventory is limited to one week. How should the company hire and train its new employees so that the labor cost is minimized over this 8-week period? Formulate the problem as a linear program.
+
+**Model** Let $X_{ij}$ = The number of people doing task j on week i. i = 1~8, j = 1,2,3( producing swiss cheese, sharp cheese and training new employees ). $Y_{i}$ = The number of people trained on week i. $S_{ik}$ The inventory of type k cheese on week i. k = 1,2 (two types of cheese).
+$$ \text{Min Z} = 40 * ( \sum_{i=1}^8 \sum_{j=1}^3 X_{ij} + \sum_{i=1}^6 Y_{ij} )  $$ 
+$$ X_{11} + X_{12} + X_{13} = 60 $$
+$$ 400X_{11} + S_{11} = 11000 ; 240X_{12} + S_{12} = 8000 $$ 
+$$ X_{21} + X_{22} + X_{23} = 60 $$
+$$ 400X_{21} + S_{21} = 12000 - S_{11} ; 240X_{22} + S_{22} = 8000 - S_{12} $$
+$$ X_{31} + X_{32} + X_{33} = 60 + Y_{1} $$
+$$ 400X_{31} + S_{31} = 13000 - S_{21} ; 240X_{32} + S_{32} = 10000 - S_{22} $$
+$$ Y_{1} \leq 3X_{13} $$
+$$ X_{41} + X_{42} + X_{43} = 60 + Y_{1} + Y_{2} $$
+$$ 400X_{41} + S_{41} = 18000 - S_{31} ; 240X_{42} + S_{42} = 8000 - S_{32}  $$
+$$ Y_{2} \leq 3X_{23} $$
+$$ X_{51} + X_{52} + X_{53} = 60 + Y_{1} + Y_{2} + Y_{3} $$
+$$ 400X_{51} + S_{51} = 14000 - S_{41} ; 240X_{52} + S_{52} = 12000 - S_{42}  $$
+$$ Y_{3} \leq 3X_{33} $$
+$$ X_{61} + X_{62} + X_{63} = 60 + Y_{1} + Y_{2} + Y_{3} + Y_{4} $$
+$$ 400X_{61} + S_{61} = 18000 - S_{51} ; 240X_{62} + S_{62} = 13000 - S_{52}  $$
+$$ Y_{4} \leq 3X_{43} $$
+$$ X_{71} + X_{72} + X_{73} = 60 + Y_{1} + Y_{2} + Y_{3} + Y_{4} + Y_{5} $$
+$$ 400X_{71} + S_{71} = 20000 - S_{61} ; 240X_{72} + S_{72} = 12000 - S_{62}  $$
+$$ Y_{5} \leq 3X_{53} $$
+$$ X_{81} + X_{82} + X_{83} = 60 + Y_{1} + Y_{2} + Y_{3} + Y_{4} + Y_{5} + Y_{6} $$
+$$ 400X_{81} + S_{81} = 20000 - S_{71} ; 240X_{82} + S_{82} = 12000 - S_{72}  $$
+$$ Y_{6} \leq 3X_{63} $$
+$$ X_{81} + X_{82} + X_{83} \leq 90 $$
+
+
+
+#### Question 1.11
+A lathe is used to reduce the diameter of a steel shaft whose length is 36 in. from 14 in. to 12 in. The speed x1 (in revolutions per minute), the depth feed x2 (in inches per minute), and the length feed x3 (in inches per minute) must be determined. The duration of the cut is given by 36/x2x3. The compression and side stresses exerted on the cutting tool are given by 30x1 + 4500x2 and 40x1 + 5000x2 + 5000x3 pounds per square inch, respectively. The temperature (in degrees Fahrenheit) at the tip of the cutting tool is 200 + 0.5x1 + 150(x2 + x3). The maximum compression stress, side stress, and temperature allowed are 150,000 psi, 100,000 psi, and 800°F, respectively. It is desired to determine the speed (which must be in the range from 600 rpm to 800 rpm), the depth feed, and the length feed such that the duration of the cut is minimized. In order to use a linear model, the following approximation is made. Since 36/x2x3 is minimized if and only if x2x3 is maximized, it was decided to replace the objective by the maximization of the minimum of x2 and x3. Formulate the problem as a linear model and comment on the validity of the approximation used in the objective function.
+
+
+**Model** 
+
+$$ \text{Max Z} = X_{0} $$
+$$ 30X_{1} + 4500X_{2} \leq 150000 $$
+$$ 40X_{1} + 5000X_{2} + 5000X_{3} \leq 100000 $$
+$$ 0.5X_{1} + 150X_{2} + 150X_{3} \leq 600 $$
+$$ X_{0} - X_{2} \leq 0 $$
+$$ X_{0} - X_{3} \leq 0 $$
+$$ 600 \leq X_{1} \leq 800 $$
+
+```{r, results = "hide"}
+
+# The original objective function is not linear, convert and add constraints
+# third constraint : multiply both side by 2
+
+model <- list()
+model$A          <- matrix( c( 0, 30, 4500, 0, 0, 40, 5000, 5000, 0, 1, 300, 300,
+                               1, 0, -1, 0, 1, 0, 0, -1, 0, 1, 0, 0, 0, 1, 0, 0 ), 
+                               ncol = 4, byrow = TRUE )
+model$obj        <- c( 1, 0, 0, 0 )
+model$rhs        <- c( 150000, 100000, 1200, 0, 0, 600, 800 )  
+model$sense      <- c( "<=", "<=", "<=", "<=", "<=", ">=", "<=" )
+model$modelsense <- "max"
+result_11 <- gurobi(model)
+
+```
+
+- Answer for 1.11 
+```{r}
+
+list( optimal  = result_11$objval, solution = result_11$x )
+
+```
+
+#### Question 1.17
+A 10-acre slum in New York City is to be cleared. The officials of the city must decide on the redevelopment plan. Two housing plans are to be considered: low-income housing and middle-income housing. These types of housing can be developed at 20 and 15 units per acre, respectively. The unit costs of the low- and middle-income housing are $17,000 and $25,000. The lower and upper limits set by the officials on the number of low-income housing units are 80 and 120. Similarly, the number of middle-income housing units must lie between 40 and 90. The combined maximum housing market potential is estimated to be 190 (which is less than the sum of the individual market limits due to the overlap between the two markets). The total mortgage committed to the renewal plan is not to exceed $2.5 million. Finally, it was suggested by the architectural adviser that the number of low-income housing units be at least 50 units greater than one-half the number of the middle-income housing units.
+
+a. Formulate the minimum cost renewal planning problem as a linear program and solve it.
+
+b. Resolve the problem if the objective is to maximize the number of houses to be constructed.
+
+**a.** Let $X_{1}$ = units of low-income housing, $X_{2}$ = units of middle-income housing 
+
+$$ \text{Min Z} = 17000X_{1} + 25000X_{2} $$ 
+$$ X_{1} + X_{2} \leq 190 $$
+$$ \frac{X_{1}}{20} + \frac{X_{2}}{15} \leq 10 $$ 
+$$ X_{1} - 0.5X_{2} \geq 50  $$
+$$ 80 \leq X_{1} \leq 120 $$
+$$ 40 \leq X_{2} \leq 90 $$
+
+```{r, results = "hide"}
+
+# second constraint, multiple both side by 60
+# third  constraint, multiple both side by 2. When using equal sign for this equation, 
+# the OPT will violate the fact that the total mortgage should not exceed $2.5 million
+
+model <- list()
+model$A          <- matrix( c( 1, 1, 3, 4, 2, -1, 1, 0, 1, 0, 0, 1, 0, 1 ), 
+                            ncol = 2, byrow = TRUE )
+model$obj        <- c( 17000, 25000 )
+model$rhs        <- c( 190, 600, 100, 120, 80, 90, 40 )  
+model$sense      <- c( "<=", "<=", ">=", "<=", ">=", "<=", ">=" )
+model$modelsense <- "min"
+
+result_17.a <- gurobi(model)
+
+```
+
+- Answer for 1.17 a
+```{r}
+
+list( optimal  = result_17.a$objval, 
+      solution = result_17.a$x )
+
+```
+
+**b.** Let $X_{1}$ = units of low-income housing, $X_{2}$ = units of middle-income housing  
+$$ \text{Max Z} = X_{1} + X_{2} $$
+$$ 17000X_{1} + 25000X_{2} \leq 2500000 $$
+$$ X_{1} + X_{2} \leq 190 $$
+$$ \frac{X_{1}}{20} + \frac{X_{2}}{15} \leq 10 $$ 
+$$ X_{1} - 0.5X_{2} \geq 50  $$
+$$ 80 \leq X_{1} \leq 120 $$
+$$ 40 \leq X_{2} \leq 90 $$
+$$ X_{1}, X_{2} \in integer $$
+
+```{r, results = "hide" }
+
+model <- list()
+model$A          <- matrix( c( 17000, 25000, 1, 1, 3, 4, 2, -1, 
+                               1, 0, 1, 0, 0, 1, 0, 1 ), 
+                            ncol = 2, byrow = TRUE )
+model$obj        <- c( 1, 1 )
+model$rhs        <- c( 2500000, 190, 600, 100, 120, 80, 90, 40 )  
+model$sense      <- c( "<=", "<=", "<=", ">=", "<=", ">=", "<=", ">=" )
+model$modelsense <- "max"
+model$vtypes     <- "I"
+result_17.b <- gurobi(model)
+
+
+```
+- Answer for 1.17 b
+```{r}
+
+list( optimal  = result_17.b$objval, 
+      solution = result_17.b$x )
+
+```
+
+
+
+
+
+
+
+
